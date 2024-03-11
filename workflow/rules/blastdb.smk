@@ -1,6 +1,7 @@
 rule blastdb:
     output:
-        multiext("resources/blastdb/silva_138/silva_138",
+        multiext(
+            "resources/blastdb/silva_138/silva_138",
             ".ndb",
             ".nhr",
             ".nin",
@@ -10,9 +11,10 @@ rule blastdb:
             ".not",
             ".nsq",
             ".ntf",
-            ".nto")
+            ".nto",
+        ),
     log:
-        "logs/blastdb/blastdb.log"
+        "logs/blastdb/blastdb.log",
     conda:
         "../envs/conda_env.yaml"
     shell:

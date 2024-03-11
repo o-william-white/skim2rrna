@@ -1,12 +1,12 @@
 rule annotations:
-    input: 
-        "results/assembled_sequence/{sample}.ok"
+    input:
+        "results/assembled_sequence/{sample}.ok",
     params:
-        kingdom = barrnap_kingdom,
+        kingdom=barrnap_kingdom,
     output:
-        ok = "results/annotations/{sample}/{sample}.ok"
+        ok="results/annotations/{sample}/{sample}.ok",
     log:
-        "logs/annotations/{sample}.log"
+        "logs/annotations/{sample}.log",
     conda:
         "../envs/annotations.yaml"
     shell:
