@@ -1,6 +1,6 @@
-# skim2mt
+# skim2rrna
 
-**skim2mt** is a snakemake pipeline for the batch assembly, annotation, and phylogenetic analysis of mitochondrial genomes from low coverage genome skims. The pipeline was designed to work with sequence data from museum collections. However, it should also work with genome skims from recently collected samples.
+**skim2rrna** is a snakemake pipeline for the batch assembly, annotation, and phylogenetic analysis of ribosomal genes from low coverage genome skims. The pipeline was designed to work with sequence data from museum collections. However, it should also work with genome skims from recently collected samples.
 
 ## Contents
  - [Setup](#setup)
@@ -23,10 +23,10 @@ Once conda is installed, you can pull the github repo and set up the base conda 
 
 ```
 # get github repo
-git clone https://github.com/o-william-white/skim2mt
+git clone https://github.com/o-william-white/skim2rrna
 
 # change dir
-cd skim2mt
+cd skim2rrna
 
 # setup conda env
 conda env create -n snakemake -f workflow/envs/conda_env.yaml
@@ -34,13 +34,13 @@ conda env create -n snakemake -f workflow/envs/conda_env.yaml
 
 <br/>
 <div align="right">
-    <b><a href="#skim2mt">↥ back to top</a></b>
+    <b><a href="#skim2rrna">↥ back to top</a></b>
 </div>
 <br/>
 
 ## Example data
 
-Before you run your own data, it is recommended to run the example datasets provided . This will confirm there are no user-specific issues with the setup and it also installs all the dependencies. The example data includes simulated mitochondrial data from 25 different butterfly species. 
+Before you run your own data, it is recommended to run the example datasets provided . This will confirm there are no user-specific issues with the setup and it also installs all the dependencies. The example data includes simulated ribosomal data from 25 different butterfly species. 
 
 To run the example data, use the code below. **Note that you need to change the user email to your own address**. The email is required by the Bio Entrez package to fetch reference sequences. The first time you run the pipeline, it will take some time to install each of the conda environments, so it is a good time to take a tea break :).
 ```
@@ -55,7 +55,7 @@ snakemake \
 
 <br/>
 <div align="right">
-    <b><a href="#skim2mt">↥ back to top</a></b>
+    <b><a href="#skim2rrna">↥ back to top</a></b>
 </div>
 <br/>
 
@@ -83,11 +83,8 @@ reverse_adapter: AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
 # fastp deduplication (True/False)
 fastp_dedup: True
 
-# mitos refseq database (refseq39, refseq63f, refseq63m, refseq63o, refseq89f, refseq89m, refseq89o)
-mitos_refseq: refseq39
-
-# mito code (2 = Vertebrate, 4 = Mold, 5 = Invertebrate, 9 = Echinoderm, 13 = Ascidian, 14 = Alternative flatworm)
-mitos_code: 5
+# barrnap kindgom (Bacteria:bac, Archaea:arc, Eukaryota:euk, None:NA)
+barrnap_kingdom: euk
 
 # alignment trimming method to use (gblocks or clipkit)
 alignment_trim: gblocks
@@ -139,7 +136,7 @@ Yoma_algina | .test/reads/Yoma_algina_1.fq.gz | .test/reads/Yoma_algina_2.fq.gz 
 
 <br/>
 <div align="right">
-    <b><a href="#skim2mt">↥ back to top</a></b>
+    <b><a href="#skim2rrna">↥ back to top</a></b>
 </div>
 <br/>
 
@@ -152,14 +149,13 @@ All output files are saved to the `results` direcotry. Below is a table summaris
 | fastqc_raw            | Fastqc reports for raw input reads |
 | fastp                 | Fastp reports from quality control of raw reads |
 | fastqc_qc             | Fastqc reports for quality controlled reads |
-| go_fetch              | Optional output containing reference databasesused by GetOrganelle |
+| go_fetch              | Optional output containing reference databases used by GetOrganelle |
 | getorganelle          | GetOrganelle output with a directory for each sample |
 | assembled_sequence    | Assembled sequences selected from GetOrganelle output and renamed |
 | seqkit                | Seqkit summary of each assembly |
 | blastn                | Blastn output of each assembly |
 | minimap               | Mapping output of quality filtered reads against each assembly |
 | blobtools             | Blobtools assembly summary collating blastn and mapping output |
-| assess_assembly       | Plots of annotations, mean depth, GC content and proportion mismatches |
 | annotations           | Annotation outputs of mitos |
 | summary               | Summary per sample (seqkit stats), contig (GC content, length, coverage, taxonomy and annotations) and annotated gene counts |
 | annotated_genes  | Unaligned fasta files of annotated genes identified across all samples |
@@ -171,7 +167,7 @@ All output files are saved to the `results` direcotry. Below is a table summaris
 
 <br/>
 <div align="right">
-    <b><a href="#skim2mt">↥ back to top</a></b>
+    <b><a href="#skim2rrna">↥ back to top</a></b>
 </div>
 <br/>
 
@@ -194,13 +190,13 @@ python workflow/scripts/format_alignments.py  \
 
 <br/>
 <div align="right">
-    <b><a href="#skim2mt">↥ back to top</a></b>
+    <b><a href="#skim2rrna">↥ back to top</a></b>
 </div>
 <br/>
 
 ## Assembly and annotation only
 
-If you are only interested in the assembly of mitochondrial sequences and annotation of genes without the phylogenetic analysis, you can stop the pipeline from running the gene alignment and phylogenetic analyses using the `--omit-from` parameter.
+If you are only interested in the assembly of ribosomal sequences and annotation of genes without the phylogenetic analysis, you can stop the pipeline from running the gene alignment and phylogenetic analyses using the `--omit-from` parameter.
 ```
 snakemake \
    --cores 4 \
@@ -211,7 +207,7 @@ snakemake \
 
 <br/>
 <div align="right">
-    <b><a href="#skim2mt">↥ back to top</a></b>
+    <b><a href="#skim2rrna">↥ back to top</a></b>
 </div>
 <br/>
 
@@ -231,7 +227,7 @@ If you have any questions, please do get in touch in the issues or by email o.wi
 
 <br/>
 <div align="right">
-    <b><a href="#skim2mt">↥ back to top</a></b>
+    <b><a href="#skim2rrna">↥ back to top</a></b>
 </div>
 <br/>
 
@@ -257,6 +253,6 @@ Since the pipeline is a wrapper for several other bioinformatic tools we also as
 
 <br/>
 <div align="right">
-    <b><a href="#skim2mt">↥ back to top</a></b>
+    <b><a href="#skim2rrna">↥ back to top</a></b>
 </div>
 <br/>
