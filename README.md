@@ -181,7 +181,7 @@ For example, let's say we wanted to remove all sequences from the sample "Kallim
 
 ```
 python workflow/scripts/format_alignments.py  \
-   --input results/mafft_filtered/
+   --input results/mafft_filtered/ \
    --cont Kallima_paralekta 5_8S \
    --output filter_alignments_output
 ```
@@ -202,7 +202,8 @@ snakemake \
    --cores 4 \
    --use-conda \
    --use-singularity \
-   --omit-from mafft
+   --config user_email=user@example_email.com \
+   --omit-from mafft 
 ```
 
 <br/>
