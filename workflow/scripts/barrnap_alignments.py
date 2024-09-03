@@ -45,7 +45,7 @@ def read_fasta(input_path):
 
 # read all sequence names and sequences across fastas into a list
 seq_list = []
-for fas in file_paths(barrnap_dir, ".fas"):
+for fas in file_paths(barrnap_dir, ".fasta"):
     for i in read_fasta(fas):
         if i[0] != None: # ignore empty fasta files
             seq_list.append(i)

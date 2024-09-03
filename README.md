@@ -15,7 +15,7 @@
 
 ## Setup
 
-The pipeline is written in Snakemake and uses conda and singularity to install the necessary tools.
+The pipeline is written in Snakemake and uses conda to install the necessary tools.
 
 It is *strongly recommended* to install conda using Mambaforge. See details here https://snakemake.readthedocs.io/en/stable/getting_started/installation.html
 
@@ -29,7 +29,14 @@ git clone https://github.com/o-william-white/skim2rrna
 cd skim2rrna
 
 # setup conda env
-conda env create -n snakemake -f workflow/envs/conda_env.yaml
+conda env create -n skim2rrna_env -f workflow/envs/conda_env.yaml
+conda config --set channel_priority flexible
+```
+
+If you need to install the conda environment to a specific location, use the following example, where the prefix argument can be updated to include a specific path:
+
+```
+conda env create -n skim2rrna_env --prefix /your_path/skim2rrna_env -f workflow/envs/conda_env.yaml
 ```
 
 <br/>
@@ -40,17 +47,19 @@ conda env create -n snakemake -f workflow/envs/conda_env.yaml
 
 ## Example data
 
-Before you run your own data, it is recommended to run the example datasets provided . This will confirm there are no user-specific issues with the setup and it also installs all the dependencies. The example data includes simulated ribosomal data from 25 different butterfly species. 
+Before you run your own data, it is recommended to run the example datasets provided. This will confirm there are no user-specific issues with the setup and it also installs all the dependencies. The example data includes simulated ribosomal data from 25 different butterfly species. 
 
 To run the example data, use the code below. **Note that you need to change the user email to your own address**. The email is required by the Bio Entrez package to fetch reference sequences. The first time you run the pipeline, it will take some time to install each of the conda environments, so it is a good time to take a tea break :).
 ```
-conda activate snakemake
+conda activate skim2rrna_env
 
-snakemake \
-   --cores 4 \
-   --use-conda \
-   --use-singularity \ 
-   --config user_email=user@example_email.com
+snakemake --cores 4 --use-conda --config user_email=user@example_email.com
+```
+
+Once this has finished, you can generate a snakemake report using the following command. As above, you need to change the user email to your own address.
+
+```
+snakemake --cores 4 --use-conda --config user_email=user@example_email.com --report skim2rrna_report.html
 ```
 
 <br/>
@@ -164,6 +173,7 @@ All output files are saved to the `results` direcotry. Below is a table summaris
 | alignment_trim        | Ambiguous parts of alignment removed using either gblocks or clipkit |
 | iqtree                | Iqtree phylogenetic analysis of annotated genes |
 | plot_tree             | Plots of phylogenetic trees |
+| multiqc               | Multiqc summary report |
 
 <br/>
 <div align="right">
@@ -198,12 +208,7 @@ python workflow/scripts/format_alignments.py  \
 
 If you are only interested in the assembly of ribosomal sequences and annotation of genes without the phylogenetic analysis, you can stop the pipeline from running the gene alignment and phylogenetic analyses using the `--omit-from` parameter.
 ```
-snakemake \
-   --cores 4 \
-   --use-conda \
-   --use-singularity \
-   --config user_email=user@example_email.com \
-   --omit-from mafft 
+snakemake --cores 4 --use-conda --config user_email=user@example_email.com --omit-from mafft 
 ```
 
 <br/>
@@ -244,13 +249,14 @@ Since the pipeline is a wrapper for several other bioinformatic tools we also as
  - Minimap2 https://doi.org/10.1093/bioinformatics/bty191
  - Blobtools https://doi.org/10.12688/f1000research.12232.1
  - Seqkit https://doi.org/10.1371/journal.pone.0163962
- - MITOS2 https://doi.org/10.1016/j.ympev.2012.08.023
+ - Barrnap https://github.com/tseemann/barrnap
  - Gblocks (default) https://doi.org/10.1093/oxfordjournals.molbev.a026334
  - Clipkit (optional) https://doi.org/10.1371/journal.pbio.3001007
  - Mafft https://doi.org/10.1093/molbev/mst010
  - Iqtree https://doi.org/10.1093/molbev/msu300
  - ete3 https://doi.org/10.1093/molbev/msw046
  - ggtree https://doi.org/10.1111/2041-210X.12628
+ - Multiqc https://doi.org/10.1093/bioinformatics/btw354
 
 <br/>
 <div align="right">

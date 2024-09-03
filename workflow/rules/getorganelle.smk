@@ -2,12 +2,14 @@ if go_reference == "go_fetch":
 
     rule getorganelle:
         input:
-            fwd="results/fastp/{sample}_R1.fastq",
-            rev="results/fastp/{sample}_R2.fastq",
+            expand("results/go_fetch/{taxids}/gene.fasta", taxids=list(set(sample_data["taxid"]))),
+            expand("results/go_fetch/{taxids}/seed.fasta", taxids=list(set(sample_data["taxid"]))),
+            fwd="results/fastp/{sample}_R1.fastq.gz",
+            rev="results/fastp/{sample}_R2.fastq.gz",
         params:
             taxid=get_taxid,
         output:
-            ok="results/getorganelle/{sample}/getorganelle.ok",
+            directory("results/getorganelle/{sample}/"),
         log:
             "logs/getorganelle/{sample}.log",
         conda:
@@ -15,7 +17,8 @@ if go_reference == "go_fetch":
         shell:
             """
             get_organelle_from_reads.py \
-                -1 {input.fwd} -2 {input.rev} \
+                -1 {input.fwd} \
+                -2 {input.rev} \
                 -o results/getorganelle/{wildcards.sample} \
                 -F anonym \
                 -s results/go_fetch/{params.taxid}/seed.fasta \
@@ -24,8 +27,7 @@ if go_reference == "go_fetch":
                 -R 10 \
                 --max-extending-len 100 \
                 -P 0 \
-                --overwrite -t {threads} &> {log}
-            touch {output.ok}
+                --overwrite &> {log}
             """
 
 else:
@@ -33,13 +35,13 @@ else:
 
         rule getorganelle:
             input:
-                fwd="results/fastp/{sample}_R1.fastq",
-                rev="results/fastp/{sample}_R2.fastq",
+                fwd="results/fastp/{sample}_R1.fastq.gz",
+                rev="results/fastp/{sample}_R2.fastq.gz",
             params:
                 seed=get_seed,
                 gene=get_gene,
             output:
-                ok="results/getorganelle/{sample}/getorganelle.ok",
+                directory("results/getorganelle/{sample}/"),
             log:
                 "logs/getorganelle/{sample}.log",
             conda:
@@ -47,7 +49,8 @@ else:
             shell:
                 """
                 get_organelle_from_reads.py \
-                    -1 {input.fwd} -2 {input.rev} \
+                    -1 {input.fwd} \
+                    -2 {input.rev} \
                     -o results/getorganelle/{wildcards.sample} \
                     -F anonym \
                     -s {params.seed} \
@@ -56,6 +59,5 @@ else:
                     -R 10 \
                     --max-extending-len 100 \
                     -P 0 \
-                    --overwrite -t {threads} &> {log}
-                touch {output.ok}
+                    --overwrite &> {log}
                 """

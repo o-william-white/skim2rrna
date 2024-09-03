@@ -1,24 +1,19 @@
 rule annotations:
     input:
-        "results/assembled_sequence/{sample}.ok",
+        fasta="results/assembled_sequence/{sample}.fasta",
     params:
         kingdom=barrnap_kingdom,
     output:
-        ok="results/annotations/{sample}/{sample}.ok",
+        gff="results/annotations/{sample}/result.gff",
+        fasta="results/annotations/{sample}/result.fasta",
     log:
         "logs/annotations/{sample}.log",
     conda:
         "../envs/annotations.yaml"
     shell:
         """
-        FAS=$(echo results/assembled_sequence/{wildcards.sample}.fasta)
-        if [ -e $FAS ]; then
-            barrnap \
-                --kingdom {params.kingdom} \
-                --reject 0.1 \
-                --outseq results/annotations/{wildcards.sample}/result.fas $FAS 1> results/annotations/{wildcards.sample}/result.gff 2> {log}
-        else
-                echo No assembled sequence for {wildcards.sample} > {log}
-        fi
-        touch {output.ok}
+        barrnap \
+           --kingdom {params.kingdom} \
+           --reject 0.1 \
+           --outseq {output.fasta} {input.fasta} 1> {output.gff} 2> {log}
         """
