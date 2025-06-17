@@ -31,8 +31,8 @@ parser.add_argument("--output",       help="Output directory.", required=False)
 parser.add_argument("--overwrite",    help="Overwrite output directory.", action="store_true", required=False)
 parser.add_argument("--getorganelle", help="Format seed and gene database for get organelle.", action="store_true", required=False)
 parser.add_argument("--email",        help="Email for Entrez.", required=True)
-parser.add_argument("--api",          help="API for NCBI.", type=str, default="None", required=False)
-parser.add_argument("--version",      action="version", version='0.0.1')
+parser.add_argument("--api",          help="API for NCBI.", type=str, required=False)
+parser.add_argument("--version",      action="version", version='1.0.0')
 args = parser.parse_args()
 
 ### additional checks
@@ -67,7 +67,7 @@ Entrez.email = args.email
 
 
 ### set api if given
-if args.api != "None":
+if args.api != None:
     print(f"Using API key: {args.api}") 
     Entrez.api_key = args.api
 
@@ -162,6 +162,23 @@ def scientific_name_exists(taxonomy):
     else:
         return False
 assert scientific_name_exists("Arabidopsis") == True
+
+# get rank from taxid
+def get_rank(taxid):
+    try:
+        # efetch
+        handle = Entrez.efetch(db="Taxonomy", id=taxid, retmode="xml")
+        record = Entrez.read(handle)
+    except urllib.error.HTTPError as e:
+        if e.code == 400:
+            print("HTTP Error 400: get_rank bad request. Retrying in 10 seconds...")
+            time.sleep(10)  # Wait for 10 seconds
+            handle = Entrez.efetch(db="Taxonomy", id=taxid, retmode="xml")
+            record = Entrez.read(handle)
+        else:
+            sys.exit(f"HTTP Error {e}: get_rank bad request. Exiting.")
+    rank = record[0]["Rank"]
+    return rank
 
 # get lineage from taxid
 def get_lineage(taxid):
@@ -327,22 +344,38 @@ def recursive_search(taxonomy, lineage, target, db, min_th, max_th, idlist):
                 entrez_efetch(i, "fasta", f"{args.output}/fasta")
                 entrez_efetch(i, "gb",    f"{args.output}/genbank")
 
-
         # if maximum exceeded, download subsample
         else:
+
             # get subsample number required
             count_idlist_subsample = max_th - count_idlist_input
+
+            # get taxonomic id
+            taxid = get_taxonomic_id(taxonomy)
+
+            # get taxonomic rank
+            rank = get_rank(taxid)
 
             print(f"Maximum threshold exceeded. Subsampling {count_idlist_subsample} sequences from children\n")
 
             # get children
             children = get_children(taxonomy)
-            
-            if len(children) == 0: 
+
+            if len(children) == 0 or rank == "species": 
                 
-                print("No children lineages. Must be a terminal rank. i.e species or subspecies\n")
-                
-                print(f"Downloading the first {count_idlist_subsample} sequences\n")
+                if len(children) == 0:
+
+                    print("No children lineages. Must be a terminal rank, i.e species\n")
+
+                if rank == "species":
+                    # note that a entrez search term with a subspecies taxonomy e.g. "Lutra lutra chinensis" does not return any results
+                    # avoid searching below species rank
+                    print("No children linages at species rank or above.\n")
+
+                    if len(children) >= 1: 
+                        print_phylogeny([taxonomy], children)
+
+                print(f"\nDownloading the first {count_idlist_subsample} sequences\n")
 
                 print("Creating output directory")
                 create_dir(args.output, args.overwrite)
@@ -367,7 +400,6 @@ def recursive_search(taxonomy, lineage, target, db, min_th, max_th, idlist):
 
                     if c != "environmental samples":
 
-                        # define search term
                         term = search_term(c, target, db)
 
                         # esearch using term and return idlist of matching accessions
