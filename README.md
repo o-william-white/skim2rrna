@@ -1,10 +1,15 @@
 # skim2rrna
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![DOI](https://img.shields.io/badge/DOI-10.1101%2F2023.08.11.552985-blue)](https://doi.org/10.1111/1755-0998.14036)
+
 **skim2rrna** is a snakemake pipeline for the batch assembly, annotation, and phylogenetic analysis of ribosomal genes from low coverage genome skims. The pipeline was designed to work with sequence data from museum collections. However, it should also work with genome skims from recently collected samples.
 
 ## Contents
  - [Setup](#setup)
  - [Example data](#example-data)
+ - [Example data with SLURM](#example-data-with-slurm)
+ - [Example data with go_fetch](#example-data-with-go_fetch)
  - [Input](#input)
  - [Output](#output)
  - [Filtering contaminants](#filtering-contaminants)
@@ -21,7 +26,7 @@ It is *strongly recommended* to install conda using Mambaforge. See details here
 
 Once conda is installed, you can pull the github repo and set up the base conda environment.
 
-```
+```bash
 # get github repo
 git clone https://github.com/o-william-white/skim2rrna
 
@@ -30,12 +35,14 @@ cd skim2rrna
 
 # setup conda env
 conda env create -n skim2rrna_env -f workflow/envs/conda_env.yaml
-conda config --set channel_priority flexible
+
+# set channel priority to avoid warning messages from snakemake
+conda config --set channel_priority strict
 ```
 
 If you need to install the conda environment to a specific location, use the following example, where the prefix argument can be updated to include a specific path:
 
-```
+```bash
 conda env create -n skim2rrna_env --prefix /your_path/skim2rrna_env -f workflow/envs/conda_env.yaml
 ```
 
@@ -49,17 +56,50 @@ conda env create -n skim2rrna_env --prefix /your_path/skim2rrna_env -f workflow/
 
 Before you run your own data, it is recommended to run the example datasets provided. This will confirm there are no user-specific issues with the setup and it also installs all the dependencies. The example data includes simulated ribosomal data from 25 different butterfly species. 
 
-To run the example data, use the code below. **Note that you need to change the user email to your own address**. The email is required by the Bio Entrez package to fetch reference sequences. The first time you run the pipeline, it will take some time to install each of the conda environments, so it is a good time to take a tea break :).
-```
+To run the example data, use the code below. The first time you run the pipeline, it will take some time to install each of the conda environments, so it is a good time to take a tea break :).
+```bash
 conda activate skim2rrna_env
 
-snakemake --cores 4 --use-conda --config user_email=user@example_email.com
+snakemake --profile workflow/profiles/test
 ```
 
-Once this has finished, you can generate a snakemake report using the following command. As above, you need to change the user email to your own address.
+The resources requested for the test data can be found in the snakemake profile workflow/profiles/test/config.yaml. This requires 16G of memory and 4 cores, with the analysis taking approximately one hour. I have purposely tried to keep the memory requirements low so it can be run on most systems. However, the runtime can be improved by adjusting the profile to allow more memory and cores.
 
+<br/>
+<div align="right">
+    <b><a href="#skim2rrna">↥ back to top</a></b>
+</div>
+<br/>
+
+## Example data with SLURM
+
+If you have access to High Performance Computing Facilities (HPC) with a job scheduler, you can submit jobs that each rule is submitted as a separate job with resources you can specify. The advantage of this approach is that you often have access to a larger computational resources and many jobs can be run simultaneously. For example, you can submit the test data to a SLURM job scheduler with the following code and it completes in approximately 40 minutes.
+
+```bash
+snakemake --profile workflow/profiles/slurm
 ```
-snakemake --cores 4 --use-conda --config user_email=user@example_email.com --report skim2rrna_report.html
+
+<br/>
+<div align="right">
+    <b><a href="#skim2rrna">↥ back to top</a></b>
+</div>
+<br/>
+
+## Example data with go_fetch
+
+The example data above uses ribosomal references provided with the test dataset. However, skim2rrna can also identify and download reference data using go_fetch.py (https://github.com/o-william-white/go_fetch), a python script which searches NCBI for ribosomal references and downloads them in the correct format for getorganelle.
+
+To rerun the test data using the go_fetch.py option to download references, run the example below. **Note that you need to change the user email and API key**. The email and API key is required by the Bio Entrez package to fetch reference sequences from NCBI. It is only necessary to provide the user email and API key if the go_fetch step is used to get reference sequences from NCBI. If you use a custom reference, it is not necessary.  
+
+You can find how to get an API key for NCBI here https://support.nlm.nih.gov/kbArticle/?pn=KA-05317
+
+```bash
+conda activate skim2rrna_env
+
+snakemake --cores 4 --use-conda \
+   --config go_reference=go_fetch \
+            user_email=user@example_email.com \
+            user_api=api_key
 ```
 
 <br/>
@@ -73,15 +113,18 @@ snakemake --cores 4 --use-conda --config user_email=user@example_email.com --rep
 Snakemake requires a `config.yaml` and `samples.csv` to define input parameters and sequence data for each sample. 
 
 For the example data provided, the config file is located here `config/config.yaml` and it looks like this:
-```
+```yaml
 # path to sample sheet csv with columns for ID,forward,reverse,taxid,seed,gene
 samples: config/samples.csv
 
-# user email
+# getorganelle reference (go_fetch, custom)
+go_reference: custom
+
+# user email (required if go_reference is go_fetch)
 user_email: user@example_email.com
 
-# getorganelle reference (go_fetch, custom)
-go_reference: go_fetch
+# api for e-utilities (required if go_reference is go_fetch)
+user_api: api_key
 
 # forward adapter
 forward_adapter: AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
@@ -110,6 +153,7 @@ outgroup: Eurema_blanda
 plot_height: 20
 plot_width: 20
 ```
+
 
 The example samples.csv file is located here `config/samples.csv` and it looks like this (note that the seed and gene columns are only required if the custom getorganelle database option is specified in the config file):
 
@@ -189,7 +233,7 @@ A supplementary python script `format_alignments.py `is provided to remove putat
 
 For example, let's say we wanted to remove all sequences from the sample "Kallima_paralekta" and 5.8S ribosomal sequence, you could run the script as shown below. The script works by identifying and removing sequences that have names with  `Kallima_paralekta` or `5_8S` in the sequence names. The filtered alignments are written to a new output directory `filter_alignments_output`.
 
-```
+```bash
 python workflow/scripts/format_alignments.py  \
    --input results/mafft_filtered/ \
    --cont Kallima_paralekta 5_8S \
@@ -207,8 +251,9 @@ python workflow/scripts/format_alignments.py  \
 ## Assembly and annotation only
 
 If you are only interested in the assembly of ribosomal sequences and annotation of genes without the phylogenetic analysis, you can stop the pipeline from running the gene alignment and phylogenetic analyses using the `--omit-from` parameter.
-```
-snakemake --cores 4 --use-conda --config user_email=user@example_email.com --omit-from mafft 
+
+```bash
+snakemake --cores 4 --use-conda --config user_email=user@example_email.com --omit-from mafft
 ```
 
 <br/>
@@ -221,11 +266,11 @@ snakemake --cores 4 --use-conda --config user_email=user@example_email.com --omi
 
 The first thing you need to do is generate your own config.yaml and samples.csv files, using the files provided as a template.
 
-GetOrganelle requires reference data in the format of seed and gene reference fasta files. By default the pipeline uses a basic python script called go_fetch.py https://github.com/o-william-white/go_fetch to download and format reference data formatted for GetOrganelle. 
+GetOrganelle requires reference data in the format of seed and gene reference fasta files. You can generate these files yourself, or use go_fetch.py https://github.com/o-william-white/go_fetch to download and format reference data formatted for GetOrganelle.
 
 go_fetch.py works by searching NCBI based on the NCBI taxonomy specified by the taxid column in the samples.csv file. Note that the seed and gene columns in the samples.csv file are only required if you want to provide your own custom GetOrganelle seed and gene reference databases. 
 
-You can use the default reference data for GetOrganelle, but I would recommend using custom reference databases where possible. See here for details of how to set up your own databases https://github.com/Kinggerm/GetOrganelle/wiki/FAQ#how-to-assemble-a-target-organelle-genome-using-my-own-reference
+You can use the default reference data for GetOrganelle, but I would recommend using custom reference databases where possible. See here for details of how to set up your own databases https://github.com/o-william-white/skim2mito/wiki/FAQ#how-to-assemble-a-target-organelle-genome-using-my-own-reference
 
 ## Getting help
 

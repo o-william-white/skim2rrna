@@ -67,6 +67,13 @@ def get_seqkit_output(wildcards):
         sample=glob_wildcards(os.path.join(ck_output, "{sample}.fasta")).sample,
     )
 
+def get_minimap_output(wildcards):
+    ck_output = checkpoints.assembled_sequence.get(**wildcards).output[0]
+    return expand(
+        rules.minimap.output,
+        sample=glob_wildcards(os.path.join(ck_output, "{sample}.fasta")).sample,
+    )
+
 def get_blobtools_output(wildcards):
     ck_output = checkpoints.assembled_sequence.get(**wildcards).output[0]
     return expand(

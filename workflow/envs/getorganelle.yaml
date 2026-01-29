@@ -2,6 +2,6 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - getorganelle =1.7.7.0
+  - getorganelle =1.7.7.1
   - spades =3.15.5
   - scipy =1.11.3

@@ -25,4 +25,4 @@ rule fastp:
         extra=extra_params,
     threads: 2
     wrapper:
-        "v3.13.8/bio/fastp"
+        "v7.5.0/bio/fastp"

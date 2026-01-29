@@ -88,6 +88,20 @@ sample_names.sort()
 # open output file
 out = open(args.output, "w")
 
+# write multiqc header 
+multiqc_header = """
+# plot_type: 'heatmap'
+# section_name: 'Mitochondrial Genes Counts'
+# description: 'Heatmap showing mitochondrial gene presence for phylogenetic analysis, after filtering alignments based on missing data'
+# pconfig:
+#   title: 'Mitochondrial Genes'
+#   square: false
+#   colstops:
+#     - [0, '#ffffff']
+#     - [1, '#1f77b4']
+"""
+out.write(multiqc_header)
+
 # define column names
 column_names = ["ID"]
 column_names.extend(list(dict_genes_sorted.keys()))

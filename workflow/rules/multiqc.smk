@@ -1,25 +1,32 @@
 rule multiqc:
     input:
+        expand(
+           "results/fastqc_qc/{sample}_R1.html",
+           sample=sample_data.index.tolist(),
+        ),
+        expand(
+            "results/fastqc_qc/{sample}_R2.html",
+            sample=sample_data.index.tolist(),
+        ),
+        expand(
+            "results/fastp/{sample}_fastp.json",
+            sample=sample_data.index.tolist(),
+        ),
+        get_minimap_output,
+        #"results/fastp/",
+        #"results/fastqc_qc/"
+        #"results/minimap/",
         "results/summary/summary_samples_mqc.txt",
         "results/summary/summary_contigs_mqc.txt",
         "results/summary/summary_gene_counts_mqc.txt",
         get_plot_tree_output,
+        config="config/config_multiqc.yaml",
     output:
-        "results/multiqc/multiqc_report.html"
+        "results/multiqc/multiqc_report.html",
+        directory("results/multiqc_data/"),
+    params:
+        extra="--verbose",  # Optional: extra parameters for multiqc.
     log:
-        "logs/multiqc/multiqc.log",
-    conda:
-        "../envs/multiqc.yaml"
-    shell:
-        """
-        # https://github.com/MultiQC/MultiQC/issues/2138
-        sed -i -e 's/--in1/--i/g' results/fastp/*.json
-        # multiqc
-        multiqc \
-            results/fastp \
-            results/minimap/ \
-            results/summary/ \
-            --force \
-            --config config/multiqc.yaml \
-            --outdir results/multiqc &> {log}
-        """
+        "logs/multiqc.log",
+    wrapper:
+        "v7.5.0/bio/multiqc"
