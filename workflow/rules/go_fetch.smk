@@ -13,7 +13,7 @@ rule go_fetch:
         """
         python3 workflow/scripts/go_fetch.py \
             --taxonomy {wildcards.taxids} \
-            --target ribosomal_complete \
+            --target ribosomal \
             --db genbank \
             --min 5  \
             --max 10 \

@@ -91,10 +91,10 @@ out = open(args.output, "w")
 # write multiqc header 
 multiqc_header = """
 # plot_type: 'heatmap'
-# section_name: 'Mitochondrial Genes Counts'
-# description: 'Heatmap showing mitochondrial gene presence for phylogenetic analysis, after filtering alignments based on missing data'
+# section_name: 'Ribosomal Genes Counts'
+# description: 'Heatmap showing ribosomal gene presence for phylogenetic analysis, after filtering alignments based on missing data'
 # pconfig:
-#   title: 'Mitochondrial Genes'
+#   title: 'Ribosomal Genes'
 #   square: false
 #   colstops:
 #     - [0, '#ffffff']

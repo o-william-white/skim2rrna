@@ -1,6 +1,7 @@
 rule iqtree:
     input:
         fasta="results/alignment_trim/{dataset}.fasta",
+        fasta_mafft="results/mafft_filtered/{dataset}.fasta", # mafft input is single line
     output:
         tree="results/iqtree/{dataset}.treefile",
         fasta_renamed="results/iqtree/{dataset}.fasta",
@@ -15,7 +16,7 @@ rule iqtree:
             {input.fasta} > {output.fasta_renamed}
 
         # iqtree will not bootstrap if less than 5 samples in alignment
-        if [ $(grep -c "^>" {input.fasta}) -lt "5" ] || [ $(grep -e "^>" -v {input.fasta} | sort | uniq | wc -l)  -lt 5 ] ; then
+        if [ $(grep -c "^>" {input.fasta}) -lt "5" ] || [ $(grep -e "^>" -v {input.fasta_mafft} | sort | uniq | wc -l)  -lt 5 ] ; then
             touch {output.tree}
         else
             iqtree -s {output.fasta_renamed} -B 1000 --prefix results/iqtree/{wildcards.dataset} -redo &> {log}
